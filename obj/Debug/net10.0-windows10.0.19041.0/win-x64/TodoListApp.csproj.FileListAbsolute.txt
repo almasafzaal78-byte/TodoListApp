@@ -1,7 +1,7 @@
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\Platforms\Windows\App.xbf
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\AboutAssets.txt
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\TodoListApp.styles.css
-C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\TodoListApp.fl5xqcfll2.bundle.scp.css
+C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\TodoListApp.zusq35bfsy.bundle.scp.css
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\app.css
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\index.html
 C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
@@ -555,6 +555,7 @@ C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\mauiimage.outputs
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.AssemblyInfoInputs.cache
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.AssemblyInfo.cs
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.csproj.CoreCompileInputs.cache
+C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.sourcelink.json
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\XamlC.stamp
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoList.18596B52.Up2Date
 C:\TodoListApp\obj\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.dll

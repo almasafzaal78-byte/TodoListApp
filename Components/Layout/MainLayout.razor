@@ -1,7 +1,9 @@
 ﻿@inherits LayoutComponentBase
-  <MudThemeProvider />
-  <MudPopoverProvider />
-  <MudDialogProvider />
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <div class="page">
     <div class="sidebar">
@@ -18,3 +20,27 @@
         </article>
     </main>
 </div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4527A0",
+            Secondary = "#00BFA5",
+            Success = "#2E7D32",
+            Warning = "#F9A825",
+            Error = "#C62828",
+            AppbarBackground = "#4527A0",
+            AppbarText = "#FFFFFF",
+            Background = "#F5F5F7",
+            Surface = "#FFFFFF"
+        }
+    };
+}

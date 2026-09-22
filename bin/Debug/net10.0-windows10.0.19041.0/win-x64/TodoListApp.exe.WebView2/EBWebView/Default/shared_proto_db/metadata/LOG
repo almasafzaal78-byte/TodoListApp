@@ -1,3 +1,2 @@
-2026/09/22-05:22:49.799 5ab8 Reusing MANIFEST C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.exe.WebView2\EBWebView\Default\shared_proto_db\metadata/MANIFEST-000001
-2026/09/22-05:22:49.800 5ab8 Recovering log #3
-2026/09/22-05:22:49.801 5ab8 Reusing old log C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.exe.WebView2\EBWebView\Default\shared_proto_db\metadata/000003.log 
+2026/09/22-12:21:26.532 45b0 Creating DB C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.exe.WebView2\EBWebView\Default\shared_proto_db\metadata since it was missing.
+2026/09/22-12:21:26.561 45b0 Reusing MANIFEST C:\TodoListApp\bin\Debug\net10.0-windows10.0.19041.0\win-x64\TodoListApp.exe.WebView2\EBWebView\Default\shared_proto_db\metadata/MANIFEST-000001

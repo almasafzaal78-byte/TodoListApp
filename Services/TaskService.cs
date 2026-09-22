@@ -20,7 +20,8 @@ public class TaskService
     public async Task<List<TaskItem>> GetTasksAsync()
     {
         await Init();
-        return await _database!.Table<TaskItem>().ToListAsync();
+        var tasks = await _database!.Table<TaskItem>().ToListAsync();
+        return tasks.OrderByDescending(t => t.CreatedDate).ToList();
     }
 
     public async Task<int> AddTaskAsync(TaskItem task)

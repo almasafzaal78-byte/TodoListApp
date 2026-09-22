@@ -1,0 +1,92 @@
+@page "/add-task"
+@using TodoListApp.Models
+@using TodoListApp.Services
+@inject TaskService TaskService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Task</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Add New Task</MudText>
+
+    <MudPaper Class="pa-4" Elevation="2">
+        <MudGrid Class="mb-2">
+            <MudItem xs="6">
+                <MudTextField Value="@nextSerialNo" Label="Serial No." Variant="Variant.Outlined" ReadOnly="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField Value="@DateTime.Now.ToString("dd MMM yyyy")" Label="Date" Variant="Variant.Outlined" ReadOnly="true" />
+            </MudItem>
+        </MudGrid>
+
+        <MudTextField @bind-Value="title" Label="Task name" Variant="Variant.Outlined"
+                      Required="true" RequiredError="Task name is required" Class="mb-4" />
+
+        <MudCheckBox T="bool" @bind-Value="isImportant" Label="Mark as Important" Color="Color.Warning" Class="mb-2" />
+
+        @if (isImportant)
+        {
+            <MudDatePicker Label="Deadline date" @bind-Date="deadlineDate" Class="mb-4" />
+            <MudTimePicker Label="Deadline time" @bind-Time="deadlineTime" Class="mb-4" />
+        }
+
+        <MudGrid Justify="Justify.FlexEnd">
+            <MudItem>
+                <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="GoBack">
+                    Cancel
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           Disabled="@IsSaveDisabled" OnClick="SaveTask">
+                    Save
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string title = string.Empty;
+    private bool isImportant = false;
+    private DateTime? deadlineDate;
+    private TimeSpan? deadlineTime;
+    private int nextSerialNo = 1;
+
+    private bool IsSaveDisabled =>
+        string.IsNullOrWhiteSpace(title) ||
+        (isImportant && (deadlineDate is null || deadlineTime is null));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tasks = await TaskService.GetTasksAsync();
+        nextSerialNo = tasks.Count + 1;
+    }
+
+    private async Task SaveTask()
+    {
+        if (IsSaveDisabled)
+            return;
+
+        DateTime? deadline = null;
+        if (isImportant && deadlineDate is not null && deadlineTime is not null)
+        {
+            deadline = deadlineDate.Value.Date + deadlineTime.Value;
+        }
+
+        var task = new TaskItem
+        {
+            Title = title.Trim(),
+            Status = TodoStatus.Active,
+            CreatedDate = DateTime.Now,
+            IsImportant = isImportant,
+            Deadline = deadline
+        };
+
+        await TaskService.AddTaskAsync(task);
+        Navigation.NavigateTo("/");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

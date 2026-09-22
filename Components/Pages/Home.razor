@@ -2,93 +2,256 @@
 @using TodoListApp.Models
 @using TodoListApp.Services
 @inject TaskService TaskService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
 
 <PageTitle>My Tasks</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">My Tasks</MudText>
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudGrid Class="mb-4" AlignItems="Center.Center">
+        <MudItem xs="8">
+            <MudText Typo="Typo.h4">My Tasks</MudText>
+        </MudItem>
+        <MudItem xs="4" Class="d-flex justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToAddTask">
+                + Add
+            </MudButton>
+        </MudItem>
+    </MudGrid>
 
-    <MudPaper Class="pa-4 mb-4" Elevation="2">
-        <MudGrid>
-            <MudItem xs="9">
-                <MudTextField @bind-Value="newTaskTitle" Label="New task" Variant="Variant.Outlined" OnKeyDown="OnKeyDown" Immediate="true" />
+    @if (tasks is not null)
+    {
+        <MudGrid Class="mb-4">
+            <MudItem xs="4">
+                <MudPaper Class="pa-3 text-center" Style="background-color:#4527A0; color:white;" Elevation="2">
+                    <MudText Typo="Typo.h5" Style="color:white;">@tasks.Count</MudText>
+                    <MudText Typo="Typo.caption" Style="color:white; opacity:0.85;">Total</MudText>
+                </MudPaper>
             </MudItem>
-            <MudItem xs="3">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-1" OnClick="AddTask">Add</MudButton>
+            <MudItem xs="4">
+                <MudPaper Class="pa-3 text-center" Style="background-color:#00BFA5; color:white;" Elevation="2">
+                    <MudText Typo="Typo.h5" Style="color:white;">@tasks.Count(t => t.Status == TodoStatus.Active)</MudText>
+                    <MudText Typo="Typo.caption" Style="color:white; opacity:0.85;">Active</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4">
+                <MudPaper Class="pa-3 text-center" Style="background-color:#2E7D32; color:white;" Elevation="2">
+                    <MudText Typo="Typo.h5" Style="color:white;">@tasks.Count(t => t.Status == TodoStatus.Completed)</MudText>
+                    <MudText Typo="Typo.caption" Style="color:white; opacity:0.85;">Completed</MudText>
+                </MudPaper>
             </MudItem>
         </MudGrid>
-    </MudPaper>
+
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="5">
+                <MudTextField @bind-Value="searchText" Label="Search by task name" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" />
+            </MudItem>
+            <MudItem xs="6" sm="4">
+                <MudSelect T="string" @bind-Value="statusFilter" Label="Status" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("All")">All</MudSelectItem>
+                    <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                    <MudSelectItem Value="@("Paused")">Paused</MudSelectItem>
+                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                    <MudSelectItem Value="@("Important")">Important</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudDatePicker @bind-Date="dateFilter" Label="Date" Clearable="true" Variant="Variant.Outlined" />
+            </MudItem>
+        </MudGrid>
+    }
 
     @if (tasks is null)
     {
         <MudText>Loading...</MudText>
     }
-    else if (tasks.Count == 0)
+    else if (editingId != 0)
     {
-        <MudText Color="Color.Secondary">No tasks yet. Add one above!</MudText>
+        var task = tasks.First(t => t.Id == editingId);
+        <MudPaper Class="pa-4 mb-3" Elevation="2">
+            <MudTextField @bind-Value="editTitle" Label="Task title" Variant="Variant.Outlined" Class="mb-2" />
+            <MudGrid Justify="Justify.FlexEnd">
+                <MudItem>
+                    <MudButton Variant="Variant.Text" OnClick="CancelEdit">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SaveEdit(task)">Save</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+    else if (FilteredTasks.Count == 0)
+    {
+        <MudText Color="Color.Secondary">No tasks match your filters.</MudText>
     }
     else
     {
-        <MudList T="TaskItem">
-            @foreach (var task in tasks)
-            {
-                <MudListItem T="TaskItem">
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                        <div style="display:flex; align-items:center;">
-                            <MudCheckBox T="bool" Value="task.IsDone" ValueChanged="EventCallback.Factory.Create<bool>(this, val => OnCheckChanged(task, val))" />
-                            <MudText Style="@GetTextStyle(task)">@task.Title</MudText>
-                        </div>
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteTask(task)" />
-                    </div>
-                </MudListItem>
-            }
-        </MudList>
+        <MudSimpleTable Hover="true" Style="overflow-x: auto;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Task Name</th>
+                    <th>Date</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int rowNum = 1; }
+                @foreach (var task in FilteredTasks)
+                {
+                    <tr style="@(task.IsImportant ? "background-color:#FFF3CD;" : "")">
+                        <td>@rowNum</td>
+                        <td Style="@GetTextStyle(task)">
+                            @if (task.IsImportant)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Warning" Size="Size.Small" Class="mr-1" />
+                            }
+                            @task.Title
+                        </td>
+                        <td>@task.CreatedDate.ToString("dd MMM yyyy")</td>
+                        <td>@(task.Deadline?.ToString("dd MMM yyyy, hh:mm tt") ?? "-")</td>
+                        <td><MudChip T="string" Color="@GetChipColor(task)" Size="Size.Small">@task.Status</MudChip></td>
+                        <td>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => StartEdit(task)" />
+
+                            @if (task.Status == TodoStatus.Active)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.PauseCircle" Size="Size.Small" OnClick="() => PauseTask(task)" />
+                            }
+                            else if (task.Status == TodoStatus.Paused)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Small" OnClick="() => ResumeTask(task)" />
+                            }
+
+                            @if (task.Status != TodoStatus.Completed)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" OnClick="() => CompleteTask(task)" />
+                            }
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => ConfirmDelete(task)" />
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+            </tbody>
+        </MudSimpleTable>
     }
 </MudContainer>
 
 @code {
     private List<TaskItem>? tasks;
-    private string newTaskTitle = string.Empty;
+    private int editingId = 0;
+    private string editTitle = string.Empty;
+
+    private string searchText = string.Empty;
+    private string statusFilter = "All";
+    private DateTime? dateFilter;
+
+    private List<TaskItem> FilteredTasks
+    {
+        get
+        {
+            if (tasks is null) return new List<TaskItem>();
+
+            var result = tasks.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+                result = result.Where(t => t.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+            if (statusFilter == "Important")
+                result = result.Where(t => t.IsImportant);
+            else if (statusFilter != "All")
+                result = result.Where(t => t.Status.ToString() == statusFilter);
+
+            if (dateFilter is not null)
+                result = result.Where(t => t.CreatedDate.Date == dateFilter.Value.Date);
+
+            return result.ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         tasks = await TaskService.GetTasksAsync();
     }
 
-    private async Task AddTask()
+    private void GoToAddTask()
     {
-        if (string.IsNullOrWhiteSpace(newTaskTitle))
+        Navigation.NavigateTo("/add-task");
+    }
+
+    private void StartEdit(TaskItem task)
+    {
+        editingId = task.Id;
+        editTitle = task.Title;
+    }
+
+    private void CancelEdit()
+    {
+        editingId = 0;
+        editTitle = string.Empty;
+    }
+
+    private async Task SaveEdit(TaskItem task)
+    {
+        if (string.IsNullOrWhiteSpace(editTitle))
             return;
 
-        var task = new TaskItem { Title = newTaskTitle.Trim(), IsDone = false };
-        await TaskService.AddTaskAsync(task);
-        newTaskTitle = string.Empty;
+        task.Title = editTitle.Trim();
+        await TaskService.UpdateTaskAsync(task);
+        editingId = 0;
         tasks = await TaskService.GetTasksAsync();
     }
 
-    private async Task OnKeyDown(KeyboardEventArgs e)
+    private async Task PauseTask(TaskItem task)
     {
-        if (e.Key == "Enter")
-        {
-            await AddTask();
-        }
-    }
-
-    private async Task OnCheckChanged(TaskItem task, bool value)
-    {
-        task.IsDone = value;
+        task.Status = TodoStatus.Paused;
         await TaskService.UpdateTaskAsync(task);
         tasks = await TaskService.GetTasksAsync();
     }
 
-    private async Task DeleteTask(TaskItem task)
+    private async Task ResumeTask(TaskItem task)
     {
-        await TaskService.DeleteTaskAsync(task);
+        task.Status = TodoStatus.Active;
+        await TaskService.UpdateTaskAsync(task);
         tasks = await TaskService.GetTasksAsync();
+    }
+
+    private async Task CompleteTask(TaskItem task)
+    {
+        task.Status = TodoStatus.Completed;
+        await TaskService.UpdateTaskAsync(task);
+        tasks = await TaskService.GetTasksAsync();
+    }
+
+    private async Task ConfirmDelete(TaskItem task)
+    {
+        bool? result = await DialogService.ShowMessageBoxAsync(
+            "Confirm Delete",
+            $"Are you sure you want to delete \"{task.Title}\"?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            await TaskService.DeleteTaskAsync(task);
+            tasks = await TaskService.GetTasksAsync();
+        }
     }
 
     private string GetTextStyle(TaskItem task)
     {
-        return task.IsDone ? "text-decoration: line-through; opacity: 0.6;" : "";
+        return task.Status == TodoStatus.Completed ? "text-decoration: line-through; opacity: 0.6;" : "";
+    }
+
+    private Color GetChipColor(TaskItem task)
+    {
+        return task.Status switch
+        {
+            TodoStatus.Active => Color.Primary,
+            TodoStatus.Paused => Color.Warning,
+            TodoStatus.Completed => Color.Success,
+            _ => Color.Default
+        };
     }
 }
