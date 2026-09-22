@@ -1,0 +1,94 @@
+﻿@page "/"
+@using TodoListApp.Models
+@using TodoListApp.Services
+@inject TaskService TaskService
+
+<PageTitle>My Tasks</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">My Tasks</MudText>
+
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudGrid>
+            <MudItem xs="9">
+                <MudTextField @bind-Value="newTaskTitle" Label="New task" Variant="Variant.Outlined" OnKeyDown="OnKeyDown" Immediate="true" />
+            </MudItem>
+            <MudItem xs="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-1" OnClick="AddTask">Add</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (tasks is null)
+    {
+        <MudText>Loading...</MudText>
+    }
+    else if (tasks.Count == 0)
+    {
+        <MudText Color="Color.Secondary">No tasks yet. Add one above!</MudText>
+    }
+    else
+    {
+        <MudList T="TaskItem">
+            @foreach (var task in tasks)
+            {
+                <MudListItem T="TaskItem">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <div style="display:flex; align-items:center;">
+                            <MudCheckBox T="bool" Value="task.IsDone" ValueChanged="EventCallback.Factory.Create<bool>(this, val => OnCheckChanged(task, val))" />
+                            <MudText Style="@GetTextStyle(task)">@task.Title</MudText>
+                        </div>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteTask(task)" />
+                    </div>
+                </MudListItem>
+            }
+        </MudList>
+    }
+</MudContainer>
+
+@code {
+    private List<TaskItem>? tasks;
+    private string newTaskTitle = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tasks = await TaskService.GetTasksAsync();
+    }
+
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTaskTitle))
+            return;
+
+        var task = new TaskItem { Title = newTaskTitle.Trim(), IsDone = false };
+        await TaskService.AddTaskAsync(task);
+        newTaskTitle = string.Empty;
+        tasks = await TaskService.GetTasksAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddTask();
+        }
+    }
+
+    private async Task OnCheckChanged(TaskItem task, bool value)
+    {
+        task.IsDone = value;
+        await TaskService.UpdateTaskAsync(task);
+        tasks = await TaskService.GetTasksAsync();
+    }
+
+    private async Task DeleteTask(TaskItem task)
+    {
+        await TaskService.DeleteTaskAsync(task);
+        tasks = await TaskService.GetTasksAsync();
+    }
+
+    private string GetTextStyle(TaskItem task)
+    {
+        return task.IsDone ? "text-decoration: line-through; opacity: 0.6;" : "";
+    }
+}
